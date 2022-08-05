@@ -2,7 +2,7 @@
 
 This is a deno module to extract sqlite's schema info.
 
-## USEAGE
+## USAGE
 
 ```typescript
 import { extract } from "https://deno.land/x/sqlite_schema/mod.ts";
