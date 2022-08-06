@@ -14,6 +14,7 @@ export type Column = Readonly<{
   isPrimaryKey: boolean;
   isNullable: boolean;
   isAutoIncrement: boolean;
+  defaultExpression?: string;
 }>;
 
 export type ColumnTypeAffinity =

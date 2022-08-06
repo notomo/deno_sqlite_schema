@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS example1 (id INTEGER NOT NULL PRIMARY KEY AUTOINCREME
 CREATE TABLE IF NOT EXISTS example2 (
   id INTEGER NOT NULL,
   number REAL NOT NULL,
-  image BLOB NOT NULL
+  image BLOB NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 `,
     );
@@ -35,6 +36,7 @@ CREATE TABLE IF NOT EXISTS example2 (
               isPrimaryKey: true,
               isNullable: false,
               isAutoIncrement: true,
+              defaultExpression: undefined,
             },
             {
               name: "description",
@@ -43,6 +45,7 @@ CREATE TABLE IF NOT EXISTS example2 (
               isPrimaryKey: false,
               isNullable: true,
               isAutoIncrement: false,
+              defaultExpression: undefined,
             },
           ],
         },
@@ -56,6 +59,7 @@ CREATE TABLE IF NOT EXISTS example2 (
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
+              defaultExpression: undefined,
             },
             {
               name: "number",
@@ -64,6 +68,7 @@ CREATE TABLE IF NOT EXISTS example2 (
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
+              defaultExpression: undefined,
             },
             {
               name: "image",
@@ -72,6 +77,16 @@ CREATE TABLE IF NOT EXISTS example2 (
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
+              defaultExpression: undefined,
+            },
+            {
+              name: "createdAt",
+              typeName: "TEXT",
+              typeAffinity: "TEXT",
+              isPrimaryKey: false,
+              isNullable: false,
+              isAutoIncrement: false,
+              defaultExpression: "CURRENT_TIMESTAMP",
             },
           ],
         },

@@ -42,6 +42,7 @@ function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
       type: string;
       pk: 0 | 1;
       notnull: 0 | 1;
+      dflt_value: string;
     }
   >(
     `PRAGMA table_info("${tableName}")`,
@@ -57,6 +58,7 @@ function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
         isNullable: e.notnull === 0,
         isAutoIncrement:
           tableSQL.match(`${e.name} [^,]+AUTOINCREMENT`) !== null,
+        defaultExpression: e.dflt_value ?? undefined,
       };
     }),
   };
