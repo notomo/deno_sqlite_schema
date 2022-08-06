@@ -11,7 +11,8 @@ const schema = extract(`
 CREATE TABLE IF NOT EXISTS issue (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
-  description TEXT
+  description TEXT,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 `);
 console.log(JSON.stringify(schema, null, 2));
@@ -46,6 +47,15 @@ console.log(JSON.stringify(schema, null, 2));
           "isPrimaryKey": false,
           "isNullable": true,
           "isAutoIncrement": false
+        },
+        {
+          "name": "createdAt",
+          "typeName": "TEXT",
+          "typeAffinity": "TEXT",
+          "isPrimaryKey": false,
+          "isNullable": false,
+          "isAutoIncrement": false,
+          "defaultExpression": "CURRENT_TIMESTAMP"
         }
       ]
     }
