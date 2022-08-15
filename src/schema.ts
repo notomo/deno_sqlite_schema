@@ -1,4 +1,4 @@
-import { DB, Row } from "https://deno.land/x/sqlite@v3.4.0/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.4.0/mod.ts";
 import { ColumnTypeAffinity, Schema, Table } from "./type.ts";
 
 export function extract(sql: string): Schema {
@@ -15,11 +15,12 @@ export function extract(sql: string): Schema {
 function fetchTables(db: DB, sql: string): Table[] {
   db.execute(sql);
 
-  const query = db.prepareQuery<Row, {
-    name: string;
-    sql: string;
-  }>(
-    `
+  return db
+    .queryEntries<{
+      name: string;
+      sql: string;
+    }>(
+      `
 SELECT
   name
   ,sql
@@ -28,15 +29,12 @@ WHERE
   type = 'table'
   AND name NOT LIKE 'sqlite\_%'
 `,
-  );
-  const tables = query.allEntries().map((e) => fetchTable(db, e.name, e.sql));
-  query.finalize();
-  return tables;
+    )
+    .map((e) => fetchTable(db, e.name, e.sql));
 }
 
 function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
-  const query = db.prepareQuery<
-    Row,
+  const entries = db.queryEntries<
     {
       name: string;
       type: string;
@@ -47,9 +45,9 @@ function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
   >(
     `PRAGMA table_info("${tableName}")`,
   );
-  const table = {
+  return {
     name: tableName,
-    columns: query.allEntries().map((e) => {
+    columns: entries.map((e) => {
       return {
         name: e.name,
         typeName: e.type,
@@ -62,8 +60,6 @@ function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
       };
     }),
   };
-  query.finalize();
-  return table;
 }
 
 export function typeNameToAffinity(typeName: string): ColumnTypeAffinity {
