@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS example2 (
   image BLOB NOT NULL,
   createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
 `,
     );
     const want = {
@@ -48,6 +50,7 @@ CREATE TABLE IF NOT EXISTS example2 (
               defaultExpression: undefined,
             },
           ],
+          indexes: [],
         },
         {
           name: "example2",
@@ -87,6 +90,25 @@ CREATE TABLE IF NOT EXISTS example2 (
               isNullable: false,
               isAutoIncrement: false,
               defaultExpression: "CURRENT_TIMESTAMP",
+            },
+          ],
+          indexes: [
+            {
+              name: "example2_number",
+              isUnique: true,
+              isPartial: true,
+              columns: [
+                {
+                  name: "number",
+                  isDescending: false,
+                  collation: "BINARY",
+                },
+                {
+                  name: "createdAt",
+                  isDescending: true,
+                  collation: "NOCASE",
+                },
+              ],
             },
           ],
         },

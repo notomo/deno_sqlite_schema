@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS issue (
   description TEXT,
   createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS issue_createdAt ON issue(createdAt);
 `);
 console.log(JSON.stringify(schema, null, 2));
 ```
@@ -56,6 +58,20 @@ console.log(JSON.stringify(schema, null, 2));
           "isNullable": false,
           "isAutoIncrement": false,
           "defaultExpression": "CURRENT_TIMESTAMP"
+        }
+      ],
+      "indexes": [
+        {
+          "name": "issue_createdAt",
+          "isUnique": false,
+          "isPartial": false,
+          "columns": [
+            {
+              "name": "createdAt",
+              "isDescending": false,
+              "collation": "BINARY"
+            }
+          ]
         }
       ]
     }

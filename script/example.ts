@@ -7,5 +7,7 @@ CREATE TABLE IF NOT EXISTS issue (
   description TEXT,
   createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS issue_createdAt ON issue(createdAt);
 `);
 console.log(JSON.stringify(schema, null, 2));

@@ -1,5 +1,11 @@
 import { DB } from "https://deno.land/x/sqlite@v3.4.0/mod.ts";
-import { ColumnTypeAffinity, Schema, Table } from "./type.ts";
+import {
+  ColumnTypeAffinity,
+  Index,
+  IndexColumn,
+  Schema,
+  Table,
+} from "./type.ts";
 
 export function extract(sql: string): Schema {
   const db = new DB();
@@ -59,7 +65,55 @@ function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
         defaultExpression: e.dflt_value ?? undefined,
       };
     }),
+    indexes: fetchIndexes(db, tableName),
   };
+}
+
+export function fetchIndexes(db: DB, tableName: string): Index[] {
+  const entries = db.queryEntries<
+    {
+      name: string;
+      unique: 0 | 1;
+      partial: 0 | 1;
+    }
+  >(
+    `PRAGMA index_list("${tableName}")`,
+  );
+  return entries.map((e) => {
+    return {
+      name: e.name,
+      isUnique: e.unique === 1,
+      isPartial: e.partial === 1,
+      columns: fetchIndexColumns(db, e.name),
+    };
+  });
+}
+
+export function fetchIndexColumns(
+  db: DB,
+  indexName: string,
+): IndexColumn[] {
+  const entries = db.queryEntries<
+    {
+      name: string | null;
+      desc: 0 | 1;
+      coll: string;
+    }
+  >(
+    `PRAGMA index_xinfo("${indexName}")`,
+  );
+  return entries
+    .map((e): IndexColumn | undefined => {
+      if (e.name === null) {
+        return undefined;
+      }
+      return {
+        name: e.name,
+        isDescending: e.desc === 1,
+        collation: e.coll,
+      };
+    })
+    .filter((c): c is IndexColumn => c !== undefined);
 }
 
 export function typeNameToAffinity(typeName: string): ColumnTypeAffinity {
