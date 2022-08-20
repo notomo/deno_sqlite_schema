@@ -1,5 +1,6 @@
 export type Schema = Readonly<{
   tables: Table[];
+  views: View[];
 }>;
 
 export type Table = Readonly<{
@@ -31,6 +32,17 @@ export type IndexColumn = Readonly<{
   name: string;
   isDescending: boolean;
   collation: string;
+}>;
+
+export type View = Readonly<{
+  name: string;
+  columns: ViewColumn[];
+}>;
+
+export type ViewColumn = Readonly<{
+  name: string;
+  originalName?: string;
+  tableName?: string;
 }>;
 
 export type ColumnTypeAffinity =

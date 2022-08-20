@@ -16,6 +16,12 @@ CREATE TABLE IF NOT EXISTS issue (
 );
 
 CREATE INDEX IF NOT EXISTS issue_createdAt ON issue(createdAt);
+
+CREATE VIEW IF NOT EXISTS describedIssue
+AS
+  SELECT id, description AS text
+  FROM issue
+  WHERE description IS NOT NULL
 `);
 console.log(JSON.stringify(schema, null, 2));
 ```
@@ -76,6 +82,23 @@ console.log(JSON.stringify(schema, null, 2));
       ],
       "isStrict": false,
       "withoutRowId": false
+    }
+  ],
+  "views": [
+    {
+      "name": "describedIssue",
+      "columns": [
+        {
+          "name": "id",
+          "originalName": "id",
+          "tableName": "issue"
+        },
+        {
+          "name": "text",
+          "originalName": "description",
+          "tableName": "issue"
+        }
+      ]
     }
   ]
 }

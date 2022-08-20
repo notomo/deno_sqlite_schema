@@ -7,6 +7,7 @@ export function extract(sql: string): types.Schema {
     db.execute(sql);
     return {
       tables: fetchTables(db),
+      views: fetchViews(db),
     };
   } finally {
     db.close();
@@ -160,4 +161,53 @@ export function typeNameToAffinity(typeName: string): types.ColumnTypeAffinity {
     return "REAL";
   }
   return "NUMERIC";
+}
+
+function fetchViews(db: DB): types.View[] {
+  return db
+    .queryEntries<{
+      name: string;
+      sql: string;
+    }>(
+      `
+SELECT
+  name
+  ,sql
+FROM sqlite_schema
+WHERE
+  type = 'view'
+`,
+    )
+    .map((e) => fetchView(db, e.name, e.sql));
+}
+
+function fetchView(
+  db: DB,
+  viewName: string,
+  viewSQL: string,
+): types.View {
+  const selectSQL = extractSelectSQL(viewSQL);
+  const query = db.prepareQuery(selectSQL);
+  const view = {
+    name: viewName,
+    columns: query.columns()
+      .map((c) => {
+        return {
+          name: c.name,
+          originalName: c.originName !== "" ? c.originName : undefined,
+          tableName: c.tableName !== "" ? c.tableName : undefined,
+        };
+      }),
+  };
+  query.finalize();
+  return view;
+}
+
+const sqlAsRegex = /\s+as\s+/i;
+function extractSelectSQL(viewSQL: string): string {
+  const match = sqlAsRegex.exec(viewSQL);
+  if (!match) {
+    throw new Error(`unexpected create view sql: ${viewSQL}`);
+  }
+  return viewSQL.slice(match.index + match[0].length);
 }

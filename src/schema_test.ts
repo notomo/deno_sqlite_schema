@@ -7,7 +7,10 @@ import {
 Deno.test("extract", async (t) => {
   await t.step("can use empty string", () => {
     const got = extract("");
-    const want = { tables: [] };
+    const want = {
+      tables: [],
+      views: [],
+    };
     assertObjectMatch(want, got);
   });
 
@@ -26,6 +29,15 @@ CREATE TABLE IF NOT EXISTS example2 (
 CREATE TABLE IF NOT EXISTS example3 (name TEXT NOT NULL PRIMARY KEY) WITHOUT ROWID;
 
 CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
+
+CREATE VIEW IF NOT EXISTS joined
+AS
+  SELECT
+    e1.id AS e1Id,
+    e2.image,
+    1
+  FROM example1 AS e1
+  INNER JOIN example2 e2 ON e1.id = e2.id;
 `,
     );
     const want = {
@@ -147,6 +159,28 @@ CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt 
           ],
           isStrict: false,
           withoutRowId: true,
+        },
+      ],
+      views: [
+        {
+          name: "joined",
+          columns: [
+            {
+              name: "e1Id",
+              originalName: "id",
+              tableName: "example1",
+            },
+            {
+              name: "image",
+              originalName: "image",
+              tableName: "example2",
+            },
+            {
+              name: "1",
+              originalName: undefined,
+              tableName: undefined,
+            },
+          ],
         },
       ],
     };
