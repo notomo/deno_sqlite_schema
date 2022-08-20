@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS example2 (
   createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) STRICT;
 
+CREATE TABLE IF NOT EXISTS example3 (name TEXT NOT NULL PRIMARY KEY) WITHOUT ROWID;
+
 CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
 `,
     );
@@ -52,6 +54,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt 
           ],
           indexes: [],
           isStrict: false,
+          withoutRowId: false,
         },
         {
           name: "example2",
@@ -113,6 +116,37 @@ CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt 
             },
           ],
           isStrict: true,
+          withoutRowId: false,
+        },
+        {
+          name: "example3",
+          columns: [
+            {
+              name: "name",
+              typeName: "TEXT",
+              typeAffinity: "TEXT",
+              isPrimaryKey: true,
+              isNullable: false,
+              isAutoIncrement: false,
+              defaultExpression: undefined,
+            },
+          ],
+          indexes: [
+            {
+              columns: [
+                {
+                  collation: "BINARY",
+                  isDescending: false,
+                  name: "name",
+                },
+              ],
+              isPartial: false,
+              isUnique: true,
+              name: "sqlite_autoindex_example3_1",
+            },
+          ],
+          isStrict: false,
+          withoutRowId: true,
         },
       ],
     };

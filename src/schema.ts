@@ -22,6 +22,7 @@ type TableListResponse = {
   name: string;
   type: string;
   strict: 0 | 1;
+  wr: 0 | 1;
 };
 
 function fetchTables(db: DB, sql: string): Table[] {
@@ -93,6 +94,7 @@ function fetchTable(
     }),
     indexes: fetchIndexes(db, tableName),
     isStrict: tableListResponse?.strict === 1,
+    withoutRowId: tableListResponse?.wr === 1,
   };
 }
 

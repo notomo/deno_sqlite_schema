@@ -7,6 +7,7 @@ export type Table = Readonly<{
   columns: Column[];
   indexes: Index[];
   isStrict: boolean;
+  withoutRowId: boolean;
 }>;
 
 export type Column = Readonly<{

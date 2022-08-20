@@ -74,7 +74,8 @@ console.log(JSON.stringify(schema, null, 2));
           ]
         }
       ],
-      "isStrict": false
+      "isStrict": false,
+      "withoutRowId": false
     }
   ]
 }
