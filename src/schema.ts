@@ -29,7 +29,7 @@ function fetchTables(db: DB): types.Table[] {
       return map;
     }, new Map<string, TableListResponse>());
 
-  return db
+  const entries = db
     .queryEntries<{
       name: string;
       sql: string;
@@ -43,24 +43,32 @@ WHERE
   type = 'table'
   AND name NOT LIKE 'sqlite\_%'
 `,
-    )
-    .map((e) => {
+    );
+
+  return entries
+    .map((e): types.Table => {
       const tableListResponse = responseMap.get(e.name);
       if (tableListResponse === undefined) {
         throw new Error(
           `unexpected table_list response: table = ${e.name}`,
         );
       }
-      return fetchTable(db, tableListResponse, e.sql);
+      const tableName = tableListResponse.name;
+      return {
+        name: tableName,
+        columns: fetchTableColumns(db, tableName, e.sql),
+        indexes: fetchIndexes(db, tableName),
+        isStrict: tableListResponse?.strict === 1,
+        withoutRowId: tableListResponse?.wr === 1,
+      };
     });
 }
 
-function fetchTable(
+function fetchTableColumns(
   db: DB,
-  tableListResponse: TableListResponse,
+  tableName: string,
   tableSQL: string,
-): types.Table {
-  const tableName = tableListResponse.name;
+): types.Column[] {
   const entries = db.queryEntries<
     {
       name: string;
@@ -72,24 +80,17 @@ function fetchTable(
   >(
     `PRAGMA table_info("${tableName}")`,
   );
-  return {
-    name: tableName,
-    columns: entries.map((e) => {
-      return {
-        name: e.name,
-        typeName: e.type,
-        typeAffinity: typeNameToAffinity(e.type),
-        isPrimaryKey: e.pk === 1,
-        isNullable: e.notnull === 0,
-        isAutoIncrement:
-          tableSQL.match(`${e.name} [^,]+AUTOINCREMENT`) !== null,
-        defaultExpression: e.dflt_value ?? undefined,
-      };
-    }),
-    indexes: fetchIndexes(db, tableName),
-    isStrict: tableListResponse?.strict === 1,
-    withoutRowId: tableListResponse?.wr === 1,
-  };
+  return entries.map((e): types.Column => {
+    return {
+      name: e.name,
+      typeName: e.type,
+      typeAffinity: typeNameToAffinity(e.type),
+      isPrimaryKey: e.pk === 1,
+      isNullable: e.notnull === 0,
+      isAutoIncrement: tableSQL.match(`${e.name} [^,]+AUTOINCREMENT`) !== null,
+      defaultExpression: e.dflt_value ?? undefined,
+    };
+  });
 }
 
 export function fetchIndexes(db: DB, tableName: string): types.Index[] {
@@ -102,7 +103,7 @@ export function fetchIndexes(db: DB, tableName: string): types.Index[] {
   >(
     `PRAGMA index_list("${tableName}")`,
   );
-  return entries.map((e) => {
+  return entries.map((e): types.Index => {
     return {
       name: e.name,
       isUnique: e.unique === 1,
@@ -164,7 +165,7 @@ export function typeNameToAffinity(typeName: string): types.ColumnTypeAffinity {
 }
 
 function fetchViews(db: DB): types.View[] {
-  return db
+  const entries = db
     .queryEntries<{
       name: string;
       sql: string;
@@ -177,30 +178,32 @@ FROM sqlite_schema
 WHERE
   type = 'view'
 `,
-    )
-    .map((e) => fetchView(db, e.name, e.sql));
+    );
+  return entries
+    .map((e): types.View => {
+      return {
+        name: e.name,
+        columns: fetchViewColumns(db, e.sql),
+      };
+    });
 }
 
-function fetchView(
+function fetchViewColumns(
   db: DB,
-  viewName: string,
   viewSQL: string,
-): types.View {
+): types.ViewColumn[] {
   const selectSQL = extractSelectSQL(viewSQL);
   const query = db.prepareQuery(selectSQL);
-  const view = {
-    name: viewName,
-    columns: query.columns()
-      .map((c) => {
-        return {
-          name: c.name,
-          originalName: c.originName !== "" ? c.originName : undefined,
-          tableName: c.tableName !== "" ? c.tableName : undefined,
-        };
-      }),
-  };
+  const columns = query.columns()
+    .map((c): types.ViewColumn => {
+      return {
+        name: c.name,
+        originalName: c.originName !== "" ? c.originName : undefined,
+        tableName: c.tableName !== "" ? c.tableName : undefined,
+      };
+    });
   query.finalize();
-  return view;
+  return columns;
 }
 
 const sqlAsRegex = /\s+as\s+/i;
