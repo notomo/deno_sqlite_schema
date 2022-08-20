@@ -1,17 +1,12 @@
 import { DB } from "https://deno.land/x/sqlite@v3.4.0/mod.ts";
-import {
-  ColumnTypeAffinity,
-  Index,
-  IndexColumn,
-  Schema,
-  Table,
-} from "./type.ts";
+import * as types from "./type.ts";
 
-export function extract(sql: string): Schema {
+export function extract(sql: string): types.Schema {
   const db = new DB();
   try {
+    db.execute(sql);
     return {
-      tables: fetchTables(db, sql),
+      tables: fetchTables(db),
     };
   } finally {
     db.close();
@@ -25,9 +20,7 @@ type TableListResponse = {
   wr: 0 | 1;
 };
 
-function fetchTables(db: DB, sql: string): Table[] {
-  db.execute(sql);
-
+function fetchTables(db: DB): types.Table[] {
   const responseMap = db.queryEntries<TableListResponse>(`PRAGMA table_list`)
     .filter((e) => e.type === "table")
     .reduce((map, e) => {
@@ -65,7 +58,7 @@ function fetchTable(
   db: DB,
   tableListResponse: TableListResponse,
   tableSQL: string,
-): Table {
+): types.Table {
   const tableName = tableListResponse.name;
   const entries = db.queryEntries<
     {
@@ -98,7 +91,7 @@ function fetchTable(
   };
 }
 
-export function fetchIndexes(db: DB, tableName: string): Index[] {
+export function fetchIndexes(db: DB, tableName: string): types.Index[] {
   const entries = db.queryEntries<
     {
       name: string;
@@ -121,7 +114,7 @@ export function fetchIndexes(db: DB, tableName: string): Index[] {
 export function fetchIndexColumns(
   db: DB,
   indexName: string,
-): IndexColumn[] {
+): types.IndexColumn[] {
   const entries = db.queryEntries<
     {
       name: string | null;
@@ -132,7 +125,7 @@ export function fetchIndexColumns(
     `PRAGMA index_xinfo("${indexName}")`,
   );
   return entries
-    .map((e): IndexColumn | undefined => {
+    .map((e): types.IndexColumn | undefined => {
       if (e.name === null) {
         return undefined;
       }
@@ -142,10 +135,10 @@ export function fetchIndexColumns(
         collation: e.coll,
       };
     })
-    .filter((c): c is IndexColumn => c !== undefined);
+    .filter((c): c is types.IndexColumn => c !== undefined);
 }
 
-export function typeNameToAffinity(typeName: string): ColumnTypeAffinity {
+export function typeNameToAffinity(typeName: string): types.ColumnTypeAffinity {
   if (typeName.includes("INT")) {
     return "INTEGER";
   }
