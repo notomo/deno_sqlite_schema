@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS example2 (
   number REAL NOT NULL,
   image BLOB NOT NULL,
   createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+) STRICT;
 
 CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
 `,
@@ -51,6 +51,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt 
             },
           ],
           indexes: [],
+          isStrict: false,
         },
         {
           name: "example2",
@@ -111,6 +112,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt 
               ],
             },
           ],
+          isStrict: true,
         },
       ],
     };

@@ -18,8 +18,21 @@ export function extract(sql: string): Schema {
   }
 }
 
+type TableListResponse = {
+  name: string;
+  type: string;
+  strict: 0 | 1;
+};
+
 function fetchTables(db: DB, sql: string): Table[] {
   db.execute(sql);
+
+  const responseMap = db.queryEntries<TableListResponse>(`PRAGMA table_list`)
+    .filter((e) => e.type === "table")
+    .reduce((map, e) => {
+      map.set(e.name, e);
+      return map;
+    }, new Map<string, TableListResponse>());
 
   return db
     .queryEntries<{
@@ -36,10 +49,23 @@ WHERE
   AND name NOT LIKE 'sqlite\_%'
 `,
     )
-    .map((e) => fetchTable(db, e.name, e.sql));
+    .map((e) => {
+      const tableListResponse = responseMap.get(e.name);
+      if (tableListResponse === undefined) {
+        throw new Error(
+          `unexpected table_list response: table = ${e.name}`,
+        );
+      }
+      return fetchTable(db, tableListResponse, e.sql);
+    });
 }
 
-function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
+function fetchTable(
+  db: DB,
+  tableListResponse: TableListResponse,
+  tableSQL: string,
+): Table {
+  const tableName = tableListResponse.name;
   const entries = db.queryEntries<
     {
       name: string;
@@ -66,6 +92,7 @@ function fetchTable(db: DB, tableName: string, tableSQL: string): Table {
       };
     }),
     indexes: fetchIndexes(db, tableName),
+    isStrict: tableListResponse?.strict === 1,
   };
 }
 
