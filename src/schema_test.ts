@@ -28,6 +28,14 @@ CREATE TABLE IF NOT EXISTS example2 (
 
 CREATE TABLE IF NOT EXISTS example3 (name TEXT NOT NULL PRIMARY KEY) WITHOUT ROWID;
 
+CREATE TRIGGER IF NOT EXISTS example3Check
+BEFORE INSERT ON example3
+BEGIN
+  SELECT RAISE(FAIL, 'error')
+  FROM example3
+  WHERE name = 'test';
+END;
+
 CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
 
 CREATE VIEW IF NOT EXISTS joined
@@ -38,6 +46,7 @@ AS
     1
   FROM example1 AS e1
   INNER JOIN example2 e2 ON e1.id = e2.id;
+
 `,
     );
     const want = {
@@ -65,6 +74,7 @@ AS
             },
           ],
           indexes: [],
+          triggers: [],
           isStrict: false,
           withoutRowId: false,
         },
@@ -127,6 +137,7 @@ AS
               ],
             },
           ],
+          triggers: [],
           isStrict: true,
           withoutRowId: false,
         },
@@ -155,6 +166,11 @@ AS
               isPartial: false,
               isUnique: true,
               name: "sqlite_autoindex_example3_1",
+            },
+          ],
+          triggers: [
+            {
+              name: "example3Check",
             },
           ],
           isStrict: false,

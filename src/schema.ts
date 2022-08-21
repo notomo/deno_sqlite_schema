@@ -58,6 +58,7 @@ WHERE
         name: tableName,
         columns: fetchTableColumns(db, tableName, e.sql),
         indexes: fetchIndexes(db, tableName),
+        triggers: fetchTriggers(db, tableName),
         isStrict: tableListResponse?.strict === 1,
         withoutRowId: tableListResponse?.wr === 1,
       };
@@ -138,6 +139,32 @@ export function fetchIndexColumns(
       };
     })
     .filter((c): c is types.IndexColumn => c !== undefined);
+}
+
+function fetchTriggers(db: DB, tableName: string): types.Trigger[] {
+  const entries = db
+    .queryEntries<{
+      name: string;
+      sql: string;
+    }>(
+      `
+SELECT
+  name
+FROM sqlite_schema
+WHERE
+  type = 'trigger'
+  AND tbl_name = :tableName
+`,
+      {
+        tableName: tableName,
+      },
+    );
+  return entries
+    .map((e) => {
+      return {
+        name: e.name,
+      };
+    });
 }
 
 export function typeNameToAffinity(typeName: string): types.ColumnTypeAffinity {

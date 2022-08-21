@@ -15,6 +15,14 @@ CREATE TABLE IF NOT EXISTS issue (
   createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TRIGGER IF NOT EXISTS issueCheck
+BEFORE INSERT ON issue
+BEGIN
+  SELECT RAISE(FAIL, 'error')
+  FROM issue
+  WHERE title = 'invalid';
+END;
+
 CREATE INDEX IF NOT EXISTS issue_createdAt ON issue(createdAt);
 
 CREATE VIEW IF NOT EXISTS describedIssue
@@ -78,6 +86,11 @@ console.log(JSON.stringify(schema, null, 2));
               "collation": "BINARY"
             }
           ]
+        }
+      ],
+      "triggers": [
+        {
+          "name": "issueCheck"
         }
       ],
       "isStrict": false,

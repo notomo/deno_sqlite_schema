@@ -7,6 +7,7 @@ export type Table = Readonly<{
   name: string;
   columns: Column[];
   indexes: Index[];
+  triggers: Trigger[];
   isStrict: boolean;
   withoutRowId: boolean;
 }>;
@@ -32,6 +33,10 @@ export type IndexColumn = Readonly<{
   name: string;
   isDescending: boolean;
   collation: string;
+}>;
+
+export type Trigger = Readonly<{
+  name: string;
 }>;
 
 export type View = Readonly<{
