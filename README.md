@@ -12,7 +12,13 @@ CREATE TABLE IF NOT EXISTS issue (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   description TEXT,
-  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  tag TEXT NOT NULL,
+  FOREIGN KEY (tag) REFERENCES issueTag(name) ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS issueTag (
+  name TEXT NOT NULL PRIMARY KEY
 );
 
 CREATE TRIGGER IF NOT EXISTS issueCheck
@@ -72,6 +78,14 @@ console.log(JSON.stringify(schema, null, 2));
           "isNullable": false,
           "isAutoIncrement": false,
           "defaultExpression": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "tag",
+          "typeName": "TEXT",
+          "typeAffinity": "TEXT",
+          "isPrimaryKey": false,
+          "isNullable": false,
+          "isAutoIncrement": false
         }
       ],
       "indexes": [
@@ -93,6 +107,50 @@ console.log(JSON.stringify(schema, null, 2));
           "name": "issueCheck"
         }
       ],
+      "foreignKeys": [
+        {
+          "tableName": "issueTag",
+          "columnPairs": [
+            {
+              "nameFrom": "tag",
+              "nameTo": "name"
+            }
+          ],
+          "onUpdateAction": "CASCADE",
+          "onDeleteAction": "NO ACTION"
+        }
+      ],
+      "isStrict": false,
+      "withoutRowId": false
+    },
+    {
+      "name": "issueTag",
+      "columns": [
+        {
+          "name": "name",
+          "typeName": "TEXT",
+          "typeAffinity": "TEXT",
+          "isPrimaryKey": true,
+          "isNullable": false,
+          "isAutoIncrement": false
+        }
+      ],
+      "indexes": [
+        {
+          "name": "sqlite_autoindex_issueTag_1",
+          "isUnique": true,
+          "isPartial": false,
+          "columns": [
+            {
+              "name": "name",
+              "isDescending": false,
+              "collation": "BINARY"
+            }
+          ]
+        }
+      ],
+      "triggers": [],
+      "foreignKeys": [],
       "isStrict": false,
       "withoutRowId": false
     }

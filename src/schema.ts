@@ -59,6 +59,7 @@ WHERE
         columns: fetchTableColumns(db, tableName, e.sql),
         indexes: fetchIndexes(db, tableName),
         triggers: fetchTriggers(db, tableName),
+        foreignKeys: fetchForeignKeys(db, tableName),
         isStrict: tableListResponse?.strict === 1,
         withoutRowId: tableListResponse?.wr === 1,
       };
@@ -163,6 +164,46 @@ WHERE
     .map((e) => {
       return {
         name: e.name,
+      };
+    });
+}
+
+function fetchForeignKeys(db: DB, tableName: string): types.ForeignKey[] {
+  const entries = db.queryEntries<
+    {
+      id: number;
+      table: string;
+      from: string;
+      to: string;
+      on_update: types.ForeignKeyAction;
+      on_delete: types.ForeignKeyAction;
+    }
+  >(
+    `PRAGMA foreign_key_list("${tableName}")`,
+  );
+
+  const pairsMap = entries
+    .reduce((map, e) => {
+      const pairs = map.get(e.id) ?? [];
+      pairs.push({
+        nameFrom: e.from,
+        nameTo: e.to,
+      });
+      map.set(e.id, pairs);
+      return map;
+    }, new Map<number, types.ForeignKeyColumnPair[]>());
+
+  return entries
+    .map((e): types.ForeignKey => {
+      const columnPairs = pairsMap.get(e.id);
+      if (!columnPairs) {
+        throw new Error("unexpected foreign_key_list response");
+      }
+      return {
+        tableName: e.table,
+        columnPairs: columnPairs,
+        onUpdateAction: e.on_update,
+        onDeleteAction: e.on_delete,
       };
     });
 }

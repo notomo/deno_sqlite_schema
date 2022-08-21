@@ -23,10 +23,13 @@ CREATE TABLE IF NOT EXISTS example2 (
   id INTEGER NOT NULL,
   number REAL NOT NULL,
   image BLOB NOT NULL,
-  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id) REFERENCES example1(id) ON DELETE CASCADE ON UPDATE SET NULL
 ) STRICT;
 
-CREATE TABLE IF NOT EXISTS example3 (name TEXT NOT NULL PRIMARY KEY) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS example3 (
+  name TEXT NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
 
 CREATE TRIGGER IF NOT EXISTS example3Check
 BEFORE INSERT ON example3
@@ -75,6 +78,7 @@ AS
           ],
           indexes: [],
           triggers: [],
+          foreignKeys: [],
           isStrict: false,
           withoutRowId: false,
         },
@@ -138,6 +142,19 @@ AS
             },
           ],
           triggers: [],
+          foreignKeys: [
+            {
+              tableName: "example1",
+              columnPairs: [
+                {
+                  nameFrom: "id",
+                  nameTo: "id",
+                },
+              ],
+              onDeleteAction: "CASCADE",
+              onUpdateAction: "SET NULL",
+            },
+          ],
           isStrict: true,
           withoutRowId: false,
         },
@@ -173,6 +190,7 @@ AS
               name: "example3Check",
             },
           ],
+          foreignKeys: [],
           isStrict: false,
           withoutRowId: true,
         },
