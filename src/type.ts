@@ -17,6 +17,7 @@ export type Column = Readonly<{
   name: string;
   typeName: string;
   typeAffinity: ColumnTypeAffinity;
+  strictType?: ColumnStrictType;
   isPrimaryKey: boolean;
   isNullable: boolean;
   isAutoIncrement: boolean;
@@ -76,3 +77,10 @@ export type ColumnTypeAffinity =
   | "INTEGER"
   | "REAL"
   | "BLOB";
+
+export type ColumnStrictType =
+  | "TEXT"
+  | "INTEGER"
+  | "REAL"
+  | "BLOB"
+  | "ANY";

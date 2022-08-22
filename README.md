@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS issue (
 
 CREATE TABLE IF NOT EXISTS issueTag (
   name TEXT NOT NULL PRIMARY KEY
-);
+) STRICT;
 
 CREATE TRIGGER IF NOT EXISTS issueCheck
 BEFORE INSERT ON issue
@@ -130,6 +130,7 @@ console.log(JSON.stringify(schema, null, 2));
           "name": "name",
           "typeName": "TEXT",
           "typeAffinity": "TEXT",
+          "strictType": "TEXT",
           "isPrimaryKey": true,
           "isNullable": false,
           "isAutoIncrement": false
@@ -151,7 +152,7 @@ console.log(JSON.stringify(schema, null, 2));
       ],
       "triggers": [],
       "foreignKeys": [],
-      "isStrict": false,
+      "isStrict": true,
       "withoutRowId": false
     }
   ],

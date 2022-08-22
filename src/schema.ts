@@ -54,13 +54,14 @@ WHERE
         );
       }
       const tableName = tableListResponse.name;
+      const isStrict = tableListResponse?.strict === 1;
       return {
         name: tableName,
-        columns: fetchTableColumns(db, tableName, e.sql),
+        columns: fetchTableColumns(db, tableName, e.sql, isStrict),
         indexes: fetchIndexes(db, tableName),
         triggers: fetchTriggers(db, tableName),
         foreignKeys: fetchForeignKeys(db, tableName),
-        isStrict: tableListResponse?.strict === 1,
+        isStrict: isStrict,
         withoutRowId: tableListResponse?.wr === 1,
       };
     });
@@ -70,6 +71,7 @@ function fetchTableColumns(
   db: DB,
   tableName: string,
   tableSQL: string,
+  isStrict: boolean,
 ): types.Column[] {
   const entries = db.queryEntries<
     {
@@ -87,6 +89,7 @@ function fetchTableColumns(
       name: e.name,
       typeName: e.type,
       typeAffinity: typeNameToAffinity(e.type),
+      strictType: typeNameToStrict(e.type, isStrict),
       isPrimaryKey: e.pk === 1,
       isNullable: e.notnull === 0,
       isAutoIncrement: tableSQL.match(`${e.name} [^,]+AUTOINCREMENT`) !== null,
@@ -230,6 +233,27 @@ export function typeNameToAffinity(typeName: string): types.ColumnTypeAffinity {
     return "REAL";
   }
   return "NUMERIC";
+}
+
+const strictTypeMap: { [K in string]: types.ColumnStrictType } = {
+  ["INT"]: "INTEGER",
+  ["INTEGER"]: "INTEGER",
+  ["TEXT"]: "TEXT",
+  ["REAL"]: "REAL",
+  ["BLOB"]: "BLOB",
+  ["ANY"]: "ANY",
+};
+export function typeNameToStrict(
+  rawType: string,
+  isStrict: boolean,
+): types.ColumnStrictType | undefined {
+  if (!isStrict) {
+    return undefined;
+  }
+  if (rawType in strictTypeMap) {
+    return strictTypeMap[rawType];
+  }
+  throw new Error(`unexpected type for strict: ${rawType}`);
 }
 
 function fetchViews(db: DB): types.View[] {

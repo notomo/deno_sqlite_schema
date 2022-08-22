@@ -1,7 +1,8 @@
-import { extract, typeNameToAffinity } from "./schema.ts";
+import { extract, typeNameToAffinity, typeNameToStrict } from "./schema.ts";
 import {
   assertEquals,
   assertObjectMatch,
+  assertThrows,
 } from "https://deno.land/std@0.149.0/testing/asserts.ts";
 
 Deno.test("extract", async (t) => {
@@ -61,6 +62,7 @@ AS
               name: "id",
               typeName: "INTEGER",
               typeAffinity: "INTEGER",
+              strictType: undefined,
               isPrimaryKey: true,
               isNullable: false,
               isAutoIncrement: true,
@@ -70,6 +72,7 @@ AS
               name: "description",
               typeName: "TEXT",
               typeAffinity: "TEXT",
+              strictType: undefined,
               isPrimaryKey: false,
               isNullable: true,
               isAutoIncrement: false,
@@ -89,6 +92,7 @@ AS
               name: "id",
               typeName: "INTEGER",
               typeAffinity: "INTEGER",
+              strictType: "INTEGER",
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
@@ -98,6 +102,7 @@ AS
               name: "number",
               typeName: "REAL",
               typeAffinity: "REAL",
+              strictType: "REAL",
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
@@ -107,6 +112,7 @@ AS
               name: "image",
               typeName: "BLOB",
               typeAffinity: "BLOB",
+              strictType: "BLOB",
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
@@ -116,6 +122,7 @@ AS
               name: "createdAt",
               typeName: "TEXT",
               typeAffinity: "TEXT",
+              strictType: "TEXT",
               isPrimaryKey: false,
               isNullable: false,
               isAutoIncrement: false,
@@ -165,6 +172,7 @@ AS
               name: "name",
               typeName: "TEXT",
               typeAffinity: "TEXT",
+              strictType: undefined,
               isPrimaryKey: true,
               isNullable: false,
               isAutoIncrement: false,
@@ -241,4 +249,25 @@ Deno.test("typeNameToAffinity", async (t) => {
       assertEquals(got, e.want);
     });
   }
+});
+
+Deno.test("typeNameToStrict", async (t) => {
+  const cases = [
+    { isStrict: true, typeName: "INT", want: "INTEGER" },
+    { isStrict: true, typeName: "INTEGER", want: "INTEGER" },
+    { isStrict: false, typeName: "INTEGER", want: undefined },
+  ];
+  for (const e of cases) {
+    await t.step(
+      `${e.typeName} => ${e.want} (isStrict = ${e.isStrict})`,
+      () => {
+        const got = typeNameToStrict(e.typeName, e.isStrict);
+        assertEquals(got, e.want);
+      },
+    );
+  }
+
+  await t.step(`throws if type name is invalid`, () => {
+    assertThrows(() => typeNameToStrict("INVALID_TYPE", true));
+  });
 });
