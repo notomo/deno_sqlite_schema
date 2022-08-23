@@ -1,29 +1,42 @@
 import { DB } from "https://deno.land/x/sqlite@v3.4.0/mod.ts";
 import * as types from "./type.ts";
 
-export function extract(sql: string): types.Schema {
+export function extract(sql: string): types.Schema[] {
   const db = new DB();
   try {
     db.execute(sql);
-    return {
-      tables: fetchTables(db),
-      views: fetchViews(db),
-    };
+    return fetchSchemas(db);
   } finally {
     db.close();
   }
 }
 
+function fetchSchemas(db: DB): types.Schema[] {
+  const schemaNames = db.queryEntries<{ schema: string }>(`PRAGMA table_list`)
+    .filter((e) => e.schema !== "temp")
+    .map((e) => e.schema)
+    .filter((schemaName, i, self) => self.indexOf(schemaName) === i);
+
+  return schemaNames.map((schemaName): types.Schema => {
+    return {
+      name: schemaName,
+      tables: fetchTables(db, schemaName),
+      views: fetchViews(db, schemaName),
+    };
+  });
+}
+
 type TableListResponse = {
+  schema: string;
   name: string;
   type: string;
   strict: 0 | 1;
   wr: 0 | 1;
 };
 
-function fetchTables(db: DB): types.Table[] {
+function fetchTables(db: DB, schemaName: string): types.Table[] {
   const responseMap = db.queryEntries<TableListResponse>(`PRAGMA table_list`)
-    .filter((e) => e.type === "table")
+    .filter((e) => e.schema === schemaName && e.type === "table")
     .reduce((map, e) => {
       map.set(e.name, e);
       return map;
@@ -38,7 +51,7 @@ function fetchTables(db: DB): types.Table[] {
 SELECT
   name
   ,sql
-FROM sqlite_schema
+FROM ${schemaName}.sqlite_schema
 WHERE
   type = 'table'
   AND name NOT LIKE 'sqlite\_%'
@@ -57,10 +70,10 @@ WHERE
       const isStrict = tableListResponse?.strict === 1;
       return {
         name: tableName,
-        columns: fetchTableColumns(db, tableName, e.sql, isStrict),
-        indexes: fetchIndexes(db, tableName),
-        triggers: fetchTriggers(db, tableName),
-        foreignKeys: fetchForeignKeys(db, tableName),
+        columns: fetchTableColumns(db, schemaName, tableName, e.sql, isStrict),
+        indexes: fetchIndexes(db, schemaName, tableName),
+        triggers: fetchTriggers(db, schemaName, tableName),
+        foreignKeys: fetchForeignKeys(db, schemaName, tableName),
         isStrict: isStrict,
         withoutRowId: tableListResponse?.wr === 1,
       };
@@ -69,6 +82,7 @@ WHERE
 
 function fetchTableColumns(
   db: DB,
+  schemaName: string,
   tableName: string,
   tableSQL: string,
   isStrict: boolean,
@@ -82,7 +96,7 @@ function fetchTableColumns(
       dflt_value: string;
     }
   >(
-    `PRAGMA table_info("${tableName}")`,
+    `PRAGMA ${schemaName}.table_info("${tableName}")`,
   );
   return entries.map((e): types.Column => {
     return {
@@ -98,7 +112,11 @@ function fetchTableColumns(
   });
 }
 
-export function fetchIndexes(db: DB, tableName: string): types.Index[] {
+export function fetchIndexes(
+  db: DB,
+  schemaName: string,
+  tableName: string,
+): types.Index[] {
   const entries = db.queryEntries<
     {
       name: string;
@@ -106,20 +124,21 @@ export function fetchIndexes(db: DB, tableName: string): types.Index[] {
       partial: 0 | 1;
     }
   >(
-    `PRAGMA index_list("${tableName}")`,
+    `PRAGMA ${schemaName}.index_list("${tableName}")`,
   );
   return entries.map((e): types.Index => {
     return {
       name: e.name,
       isUnique: e.unique === 1,
       isPartial: e.partial === 1,
-      columns: fetchIndexColumns(db, e.name),
+      columns: fetchIndexColumns(db, schemaName, e.name),
     };
   });
 }
 
 export function fetchIndexColumns(
   db: DB,
+  schemaName: string,
   indexName: string,
 ): types.IndexColumn[] {
   const entries = db.queryEntries<
@@ -129,7 +148,7 @@ export function fetchIndexColumns(
       coll: string;
     }
   >(
-    `PRAGMA index_xinfo("${indexName}")`,
+    `PRAGMA ${schemaName}.index_xinfo("${indexName}")`,
   );
   return entries
     .map((e): types.IndexColumn | undefined => {
@@ -145,7 +164,11 @@ export function fetchIndexColumns(
     .filter((c): c is types.IndexColumn => c !== undefined);
 }
 
-function fetchTriggers(db: DB, tableName: string): types.Trigger[] {
+function fetchTriggers(
+  db: DB,
+  schemaName: string,
+  tableName: string,
+): types.Trigger[] {
   const entries = db
     .queryEntries<{
       name: string;
@@ -154,7 +177,7 @@ function fetchTriggers(db: DB, tableName: string): types.Trigger[] {
       `
 SELECT
   name
-FROM sqlite_schema
+FROM ${schemaName}.sqlite_schema
 WHERE
   type = 'trigger'
   AND tbl_name = :tableName
@@ -171,7 +194,11 @@ WHERE
     });
 }
 
-function fetchForeignKeys(db: DB, tableName: string): types.ForeignKey[] {
+function fetchForeignKeys(
+  db: DB,
+  schemaName: string,
+  tableName: string,
+): types.ForeignKey[] {
   const entries = db.queryEntries<
     {
       id: number;
@@ -182,7 +209,7 @@ function fetchForeignKeys(db: DB, tableName: string): types.ForeignKey[] {
       on_delete: types.ForeignKeyAction;
     }
   >(
-    `PRAGMA foreign_key_list("${tableName}")`,
+    `PRAGMA ${schemaName}.foreign_key_list("${tableName}")`,
   );
 
   const pairsMap = entries
@@ -256,7 +283,7 @@ export function typeNameToStrict(
   throw new Error(`unexpected type for strict: ${rawType}`);
 }
 
-function fetchViews(db: DB): types.View[] {
+function fetchViews(db: DB, schemaName: string): types.View[] {
   const entries = db
     .queryEntries<{
       name: string;
@@ -266,7 +293,7 @@ function fetchViews(db: DB): types.View[] {
 SELECT
   name
   ,sql
-FROM sqlite_schema
+FROM ${schemaName}.sqlite_schema
 WHERE
   type = 'view'
 `,

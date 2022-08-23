@@ -1,4 +1,5 @@
 export type Schema = Readonly<{
+  name: string;
   tables: Table[];
   views: View[];
 }>;

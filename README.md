@@ -41,137 +41,140 @@ console.log(JSON.stringify(schema, null, 2));
 ```
 
 ```json
-{
-  "tables": [
-    {
-      "name": "issue",
-      "columns": [
-        {
-          "name": "id",
-          "typeName": "INTEGER",
-          "typeAffinity": "INTEGER",
-          "isPrimaryKey": true,
-          "isNullable": false,
-          "isAutoIncrement": true
-        },
-        {
-          "name": "title",
-          "typeName": "TEXT",
-          "typeAffinity": "TEXT",
-          "isPrimaryKey": false,
-          "isNullable": false,
-          "isAutoIncrement": false
-        },
-        {
-          "name": "description",
-          "typeName": "TEXT",
-          "typeAffinity": "TEXT",
-          "isPrimaryKey": false,
-          "isNullable": true,
-          "isAutoIncrement": false
-        },
-        {
-          "name": "createdAt",
-          "typeName": "TEXT",
-          "typeAffinity": "TEXT",
-          "isPrimaryKey": false,
-          "isNullable": false,
-          "isAutoIncrement": false,
-          "defaultExpression": "CURRENT_TIMESTAMP"
-        },
-        {
-          "name": "tag",
-          "typeName": "TEXT",
-          "typeAffinity": "TEXT",
-          "isPrimaryKey": false,
-          "isNullable": false,
-          "isAutoIncrement": false
-        }
-      ],
-      "indexes": [
-        {
-          "name": "issue_createdAt",
-          "isUnique": false,
-          "isPartial": false,
-          "columns": [
-            {
-              "name": "createdAt",
-              "isDescending": false,
-              "collation": "BINARY"
-            }
-          ]
-        }
-      ],
-      "triggers": [
-        {
-          "name": "issueCheck"
-        }
-      ],
-      "foreignKeys": [
-        {
-          "tableName": "issueTag",
-          "columnPairs": [
-            {
-              "nameFrom": "tag",
-              "nameTo": "name"
-            }
-          ],
-          "onUpdateAction": "CASCADE",
-          "onDeleteAction": "NO ACTION"
-        }
-      ],
-      "isStrict": false,
-      "withoutRowId": false
-    },
-    {
-      "name": "issueTag",
-      "columns": [
-        {
-          "name": "name",
-          "typeName": "TEXT",
-          "typeAffinity": "TEXT",
-          "strictType": "TEXT",
-          "isPrimaryKey": true,
-          "isNullable": false,
-          "isAutoIncrement": false
-        }
-      ],
-      "indexes": [
-        {
-          "name": "sqlite_autoindex_issueTag_1",
-          "isUnique": true,
-          "isPartial": false,
-          "columns": [
-            {
-              "name": "name",
-              "isDescending": false,
-              "collation": "BINARY"
-            }
-          ]
-        }
-      ],
-      "triggers": [],
-      "foreignKeys": [],
-      "isStrict": true,
-      "withoutRowId": false
-    }
-  ],
-  "views": [
-    {
-      "name": "describedIssue",
-      "columns": [
-        {
-          "name": "id",
-          "originalName": "id",
-          "tableName": "issue"
-        },
-        {
-          "name": "text",
-          "originalName": "description",
-          "tableName": "issue"
-        }
-      ]
-    }
-  ]
-}
+[
+  {
+    "name": "main",
+    "tables": [
+      {
+        "name": "issue",
+        "columns": [
+          {
+            "name": "id",
+            "typeName": "INTEGER",
+            "typeAffinity": "INTEGER",
+            "isPrimaryKey": true,
+            "isNullable": false,
+            "isAutoIncrement": true
+          },
+          {
+            "name": "title",
+            "typeName": "TEXT",
+            "typeAffinity": "TEXT",
+            "isPrimaryKey": false,
+            "isNullable": false,
+            "isAutoIncrement": false
+          },
+          {
+            "name": "description",
+            "typeName": "TEXT",
+            "typeAffinity": "TEXT",
+            "isPrimaryKey": false,
+            "isNullable": true,
+            "isAutoIncrement": false
+          },
+          {
+            "name": "createdAt",
+            "typeName": "TEXT",
+            "typeAffinity": "TEXT",
+            "isPrimaryKey": false,
+            "isNullable": false,
+            "isAutoIncrement": false,
+            "defaultExpression": "CURRENT_TIMESTAMP"
+          },
+          {
+            "name": "tag",
+            "typeName": "TEXT",
+            "typeAffinity": "TEXT",
+            "isPrimaryKey": false,
+            "isNullable": false,
+            "isAutoIncrement": false
+          }
+        ],
+        "indexes": [
+          {
+            "name": "issue_createdAt",
+            "isUnique": false,
+            "isPartial": false,
+            "columns": [
+              {
+                "name": "createdAt",
+                "isDescending": false,
+                "collation": "BINARY"
+              }
+            ]
+          }
+        ],
+        "triggers": [
+          {
+            "name": "issueCheck"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "tableName": "issueTag",
+            "columnPairs": [
+              {
+                "nameFrom": "tag",
+                "nameTo": "name"
+              }
+            ],
+            "onUpdateAction": "CASCADE",
+            "onDeleteAction": "NO ACTION"
+          }
+        ],
+        "isStrict": false,
+        "withoutRowId": false
+      },
+      {
+        "name": "issueTag",
+        "columns": [
+          {
+            "name": "name",
+            "typeName": "TEXT",
+            "typeAffinity": "TEXT",
+            "strictType": "TEXT",
+            "isPrimaryKey": true,
+            "isNullable": false,
+            "isAutoIncrement": false
+          }
+        ],
+        "indexes": [
+          {
+            "name": "sqlite_autoindex_issueTag_1",
+            "isUnique": true,
+            "isPartial": false,
+            "columns": [
+              {
+                "name": "name",
+                "isDescending": false,
+                "collation": "BINARY"
+              }
+            ]
+          }
+        ],
+        "triggers": [],
+        "foreignKeys": [],
+        "isStrict": true,
+        "withoutRowId": false
+      }
+    ],
+    "views": [
+      {
+        "name": "describedIssue",
+        "columns": [
+          {
+            "name": "id",
+            "originalName": "id",
+            "tableName": "issue"
+          },
+          {
+            "name": "text",
+            "originalName": "description",
+            "tableName": "issue"
+          }
+        ]
+      }
+    ]
+  }
+]
 ```
