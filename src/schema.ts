@@ -300,20 +300,33 @@ WHERE
     );
   return entries
     .map((e): types.View => {
+      const viewName = e.name;
       return {
-        name: e.name,
-        columns: fetchViewColumns(db, e.sql),
+        name: viewName,
+        columns: fetchViewColumns(db, schemaName, viewName, e.sql),
       };
     });
 }
 
 function fetchViewColumns(
   db: DB,
+  schemaName: string,
+  viewName: string,
   viewSQL: string,
 ): types.ViewColumn[] {
+  const columnNameMap = db.queryEntries<{ name: string }>(
+    `PRAGMA ${schemaName}.table_info("${viewName}")`,
+  )
+    .map((e) => e.name)
+    .reduce((map, name) => {
+      map.set(name, true);
+      return map;
+    }, new Map<string, boolean>());
+
   const selectSQL = extractSelectSQL(viewSQL);
   const query = db.prepareQuery(selectSQL);
   const columns = query.columns()
+    .filter((c) => columnNameMap.has(c.name))
     .map((c): types.ViewColumn => {
       return {
         name: c.name,

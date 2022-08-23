@@ -58,6 +58,13 @@ AS
   FROM example1 AS e1
   INNER JOIN example2 e2 ON e1.id = e2.id;
 
+CREATE VIEW IF NOT EXISTS specifiedColumn (id)
+AS
+  SELECT
+    id,
+    description
+  FROM example1
+
 `,
     );
     const wants = [
@@ -230,6 +237,16 @@ AS
                 name: "1",
                 originalName: undefined,
                 tableName: undefined,
+              },
+            ],
+          },
+          {
+            name: "specifiedColumn",
+            columns: [
+              {
+                name: "id",
+                originalName: "id",
+                tableName: "example1",
               },
             ],
           },
