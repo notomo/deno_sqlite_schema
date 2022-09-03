@@ -6,7 +6,7 @@ import {
 } from "https://deno.land/std@0.149.0/testing/asserts.ts";
 
 Deno.test("extract", async (t) => {
-  await t.step("can use empty string", () => {
+  await t.step("can extract empty schema", () => {
     const gots = extract("");
     const wants = [
       {
@@ -15,6 +15,8 @@ Deno.test("extract", async (t) => {
         views: [],
       },
     ];
+
+    assertEquals(gots.length, wants.length);
     for (const i in wants) {
       const want = wants[i];
       const got = gots[i];
@@ -22,75 +24,37 @@ Deno.test("extract", async (t) => {
     }
   });
 
-  await t.step("returns schema", () => {
-    const gots = extract(
-      `
-CREATE TABLE IF NOT EXISTS example1 (id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, description TEXT);
-
-CREATE TABLE IF NOT EXISTS example2 (
+  await t.step("can extract schema", () => {
+    const gots = extract(`
+CREATE TABLE IF NOT EXISTS example (
   id INTEGER NOT NULL,
-  number REAL NOT NULL,
-  image BLOB NOT NULL,
-  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id) REFERENCES example1(id) ON DELETE CASCADE ON UPDATE SET NULL
-) STRICT;
-
-CREATE TABLE IF NOT EXISTS example3 (
-  name TEXT NOT NULL PRIMARY KEY
-) WITHOUT ROWID;
-
-CREATE TRIGGER IF NOT EXISTS example3Check
-BEFORE INSERT ON example3
-BEGIN
-  SELECT RAISE(FAIL, 'error')
-  FROM example3
-  WHERE name = 'test';
-END;
-
-CREATE UNIQUE INDEX IF NOT EXISTS example2_number ON example2(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
-
-CREATE VIEW IF NOT EXISTS joined
-AS
-  SELECT
-    e1.id AS e1Id,
-    e2.image,
-    1
-  FROM example1 AS e1
-  INNER JOIN example2 e2 ON e1.id = e2.id;
-
-CREATE VIEW IF NOT EXISTS specifiedColumn (id)
-AS
-  SELECT
-    id,
-    description
-  FROM example1
-
-`,
-    );
+  number REAL NOT NULL
+);
+`);
     const wants = [
       {
         name: "main",
         tables: [
           {
-            name: "example1",
+            name: "example",
             columns: [
               {
                 name: "id",
                 typeName: "INTEGER",
                 typeAffinity: "INTEGER",
                 strictType: undefined,
-                isPrimaryKey: true,
+                isPrimaryKey: false,
                 isNullable: false,
-                isAutoIncrement: true,
+                isAutoIncrement: false,
                 defaultExpression: undefined,
               },
               {
-                name: "description",
-                typeName: "TEXT",
-                typeAffinity: "TEXT",
+                name: "number",
+                typeName: "REAL",
+                typeAffinity: "REAL",
                 strictType: undefined,
                 isPrimaryKey: false,
-                isNullable: true,
+                isNullable: false,
                 isAutoIncrement: false,
                 defaultExpression: undefined,
               },
@@ -101,163 +65,281 @@ AS
             isStrict: false,
             withoutRowId: false,
           },
-          {
-            name: "example2",
-            columns: [
-              {
-                name: "id",
-                typeName: "INTEGER",
-                typeAffinity: "INTEGER",
-                strictType: "INTEGER",
-                isPrimaryKey: false,
-                isNullable: false,
-                isAutoIncrement: false,
-                defaultExpression: undefined,
-              },
-              {
-                name: "number",
-                typeName: "REAL",
-                typeAffinity: "REAL",
-                strictType: "REAL",
-                isPrimaryKey: false,
-                isNullable: false,
-                isAutoIncrement: false,
-                defaultExpression: undefined,
-              },
-              {
-                name: "image",
-                typeName: "BLOB",
-                typeAffinity: "BLOB",
-                strictType: "BLOB",
-                isPrimaryKey: false,
-                isNullable: false,
-                isAutoIncrement: false,
-                defaultExpression: undefined,
-              },
-              {
-                name: "createdAt",
-                typeName: "TEXT",
-                typeAffinity: "TEXT",
-                strictType: "TEXT",
-                isPrimaryKey: false,
-                isNullable: false,
-                isAutoIncrement: false,
-                defaultExpression: "CURRENT_TIMESTAMP",
-              },
-            ],
-            indexes: [
-              {
-                name: "example2_number",
-                isUnique: true,
-                isPartial: true,
-                columns: [
-                  {
-                    name: "number",
-                    isDescending: false,
-                    collation: "BINARY",
-                  },
-                  {
-                    name: "createdAt",
-                    isDescending: true,
-                    collation: "NOCASE",
-                  },
-                ],
-              },
-            ],
-            triggers: [],
-            foreignKeys: [
-              {
-                tableName: "example1",
-                columnPairs: [
-                  {
-                    nameFrom: "id",
-                    nameTo: "id",
-                  },
-                ],
-                onDeleteAction: "CASCADE",
-                onUpdateAction: "SET NULL",
-              },
-            ],
-            isStrict: true,
-            withoutRowId: false,
-          },
-          {
-            name: "example3",
-            columns: [
-              {
-                name: "name",
-                typeName: "TEXT",
-                typeAffinity: "TEXT",
-                strictType: undefined,
-                isPrimaryKey: true,
-                isNullable: false,
-                isAutoIncrement: false,
-                defaultExpression: undefined,
-              },
-            ],
-            indexes: [
-              {
-                columns: [
-                  {
-                    collation: "BINARY",
-                    isDescending: false,
-                    name: "name",
-                  },
-                ],
-                isPartial: false,
-                isUnique: true,
-                name: "sqlite_autoindex_example3_1",
-              },
-            ],
-            triggers: [
-              {
-                name: "example3Check",
-              },
-            ],
-            foreignKeys: [],
-            isStrict: false,
-            withoutRowId: true,
-          },
         ],
-        views: [
-          {
-            name: "joined",
-            columns: [
-              {
-                name: "e1Id",
-                originalName: "id",
-                tableName: "example1",
-              },
-              {
-                name: "image",
-                originalName: "image",
-                tableName: "example2",
-              },
-              {
-                name: "1",
-                originalName: undefined,
-                tableName: undefined,
-              },
-            ],
-          },
-          {
-            name: "specifiedColumn",
-            columns: [
-              {
-                name: "id",
-                originalName: "id",
-                tableName: "example1",
-              },
-            ],
-          },
-        ],
+        views: [],
       },
     ];
+
+    assertEquals(gots.length, wants.length);
     for (const i in wants) {
       const want = wants[i];
       const got = gots[i];
       assertObjectMatch(want, got);
     }
+  });
+
+  await t.step("can extract table", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  id INTEGER NOT NULL
+);
+`,
+    );
+    const got = gots[0].tables[0];
+    const want = {
+      name: "example",
+      columns: [
+        {
+          name: "id",
+          typeName: "INTEGER",
+          typeAffinity: "INTEGER",
+          strictType: undefined,
+          isPrimaryKey: false,
+          isNullable: false,
+          isAutoIncrement: false,
+          defaultExpression: undefined,
+        },
+      ],
+      indexes: [],
+      triggers: [],
+      foreignKeys: [],
+      isStrict: false,
+      withoutRowId: false,
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract strict table", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  name TEXT
+) STRICT;
+`,
+    );
+    const got = gots[0].tables[0];
+    const want = {
+      name: "example",
+      columns: [
+        {
+          name: "name",
+          typeName: "TEXT",
+          typeAffinity: "TEXT",
+          strictType: "TEXT",
+          isPrimaryKey: false,
+          isNullable: true,
+          isAutoIncrement: false,
+          defaultExpression: undefined,
+        },
+      ],
+      indexes: [],
+      triggers: [],
+      foreignKeys: [],
+      isStrict: true,
+      withoutRowId: false,
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract without rowid table", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  name TEXT NOT NULL PRIMARY KEY
+) WITHOUT ROWID;
+`,
+    );
+    const got = gots[0].tables[0].withoutRowId;
+    const want = true;
+    assertEquals(got, want);
+  });
+
+  await t.step("can extract auto increment column", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example1 (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+);
+`,
+    );
+    const got = gots[0].tables[0].columns[0];
+    const want = {
+      name: "id",
+      typeName: "INTEGER",
+      typeAffinity: "INTEGER",
+      strictType: undefined,
+      isPrimaryKey: true,
+      isNullable: false,
+      isAutoIncrement: true,
+      defaultExpression: undefined,
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract column default expression", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`,
+    );
+    const got = gots[0].tables[0].columns[0].defaultExpression;
+    const want = "CURRENT_TIMESTAMP";
+    assertEquals(got, want);
+  });
+
+  await t.step("can extract foreign key", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example1 (id INTEGER NOT NULL PRIMARY KEY);
+
+CREATE TABLE IF NOT EXISTS example2 (
+  id INTEGER NOT NULL,
+  number REAL NOT NULL,
+  FOREIGN KEY (id) REFERENCES example1(id) ON DELETE CASCADE ON UPDATE SET NULL
+);
+`,
+    );
+    const got = gots[0].tables[1].foreignKeys[0];
+    const want = {
+      tableName: "example1",
+      columnPairs: [
+        {
+          nameFrom: "id",
+          nameTo: "id",
+        },
+      ],
+      onDeleteAction: "CASCADE",
+      onUpdateAction: "SET NULL",
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract trigger", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (name TEXT);
+
+CREATE TRIGGER IF NOT EXISTS exampleCheck
+BEFORE INSERT ON example
+BEGIN
+  SELECT RAISE(FAIL, 'error')
+  FROM example
+  WHERE name = 'test';
+END;
+
+`,
+    );
+    const got = gots[0].tables[0].triggers[0];
+    const want = {
+      name: "exampleCheck",
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract index", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  number INTEGER,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS example_number ON example(number, createdAt COLLATE NOCASE DESC) WHERE number > 10;
+`,
+    );
+    const got = gots[0].tables[0].indexes[0];
+    const want = {
+      name: "example_number",
+      isUnique: true,
+      isPartial: true,
+      columns: [
+        {
+          name: "number",
+          isDescending: false,
+          collation: "BINARY",
+        },
+        {
+          name: "createdAt",
+          isDescending: true,
+          collation: "NOCASE",
+        },
+      ],
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract view that does not specify columns", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  id INTEGER NOT NULL,
+  image BLOB NOT NULL
+);
+
+CREATE VIEW IF NOT EXISTS joined
+AS
+  SELECT
+    e1.id AS e1Id,
+    e1.image,
+    1
+  FROM example AS e1
+`,
+    );
+    const got = gots[0].views[0];
+    const want = {
+      name: "joined",
+      columns: [
+        {
+          name: "e1Id",
+          originalName: "id",
+          tableName: "example",
+        },
+        {
+          name: "image",
+          originalName: "image",
+          tableName: "example",
+        },
+        {
+          name: "1",
+          originalName: undefined,
+          tableName: undefined,
+        },
+      ],
+    };
+    assertObjectMatch(got, want);
+  });
+
+  await t.step("can extract view that specifes columns", () => {
+    const gots = extract(
+      `
+CREATE TABLE IF NOT EXISTS example (
+  id INTEGER NOT NULL,
+  image BLOB NOT NULL
+);
+
+CREATE VIEW IF NOT EXISTS specifiedColumn (id)
+AS
+  SELECT
+    id,
+    image
+  FROM example
+`,
+    );
+    const got = gots[0].views[0];
+    const want = {
+      name: "specifiedColumn",
+      columns: [
+        {
+          name: "id",
+          originalName: "id",
+          tableName: "example",
+        },
+      ],
+    };
+    assertObjectMatch(got, want);
   });
 });
 
