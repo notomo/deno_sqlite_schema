@@ -3,7 +3,7 @@ test:
 
 check:
 	deno fmt --check
-	deno check mod.ts
+	deno check **/*.ts
 	deno lint
 
 doc:

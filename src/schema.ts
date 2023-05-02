@@ -1,4 +1,4 @@
-import { DB } from "https://deno.land/x/sqlite@v3.4.0/mod.ts";
+import { DB } from "https://deno.land/x/sqlite@v3.7.0/mod.ts";
 import * as types from "./type.ts";
 
 export function extract(sql: string): types.Schema[] {

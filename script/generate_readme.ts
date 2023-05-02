@@ -1,16 +1,13 @@
 async function generateReadme(examplePath: string, outputReadmePath: string) {
-  const cmd = [
-    "deno",
-    "run",
-    examplePath,
-  ];
-  const process = Deno.run({ cmd: cmd, stdout: "piped" });
-  await process.status();
+  const command = new Deno.Command("deno", { args: ["run", examplePath] });
 
-  const rawOutput = await process.output();
-  process.close();
-  const outputJSON = new TextDecoder().decode(rawOutput);
+  const { code, stdout, stderr } = await command.output();
+  if (code !== 0) {
+    const err = new TextDecoder().decode(stderr);
+    throw new Error(err);
+  }
 
+  const outputJSON = new TextDecoder().decode(stdout);
   const rawExample = await Deno.readFile(examplePath);
   const example = new TextDecoder().decode(rawExample).replace(
     `"../mod.ts"`,
