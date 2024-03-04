@@ -1,1 +1,5 @@
-{}
+{
+  "name": "@notomo/sqlite_schema",
+  "version": "0.0.3",
+  "exports": "./mod.ts"
+}
