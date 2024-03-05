@@ -68,8 +68,6 @@ export type View = Readonly<{
 
 export type ViewColumn = Readonly<{
   name: string;
-  originalName?: string;
-  tableName?: string;
 }>;
 
 export type ColumnTypeAffinity =
@@ -79,9 +77,4 @@ export type ColumnTypeAffinity =
   | "REAL"
   | "BLOB";
 
-export type ColumnStrictType =
-  | "TEXT"
-  | "INTEGER"
-  | "REAL"
-  | "BLOB"
-  | "ANY";
+export type ColumnStrictType = "TEXT" | "INTEGER" | "REAL" | "BLOB" | "ANY";

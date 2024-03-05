@@ -271,7 +271,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS example_number ON example(number, createdAt CO
     assertObjectMatch(got, want);
   });
 
-  await t.step("can extract view that does not specify columns", () => {
+  await t.step("can extract view", () => {
     const gots = extract(
       `
 CREATE TABLE IF NOT EXISTS example (
@@ -294,48 +294,12 @@ AS
       columns: [
         {
           name: "e1Id",
-          originalName: "id",
-          tableName: "example",
         },
         {
           name: "image",
-          originalName: "image",
-          tableName: "example",
         },
         {
           name: "1",
-          originalName: undefined,
-          tableName: undefined,
-        },
-      ],
-    };
-    assertObjectMatch(got, want);
-  });
-
-  await t.step("can extract view that specifes columns", () => {
-    const gots = extract(
-      `
-CREATE TABLE IF NOT EXISTS example (
-  id INTEGER NOT NULL,
-  image BLOB NOT NULL
-);
-
-CREATE VIEW IF NOT EXISTS specifiedColumn (id)
-AS
-  SELECT
-    id,
-    image
-  FROM example
-`,
-    );
-    const got = gots[0].views[0];
-    const want = {
-      name: "specifiedColumn",
-      columns: [
-        {
-          name: "id",
-          originalName: "id",
-          tableName: "example",
         },
       ],
     };

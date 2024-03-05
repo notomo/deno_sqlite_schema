@@ -315,7 +315,6 @@ function fetchViewColumns(
     }, new Map<string, boolean>());
 
   const selectSQL = extractSelectSQL(viewSQL);
-  console.log(selectSQL);
   const query = db.prepare(selectSQL);
   const columns = query
     .columnNames()
@@ -323,9 +322,6 @@ function fetchViewColumns(
     .map((name): types.ViewColumn => {
       return {
         name: name,
-        originalName: name,
-        // originalName: c.originName !== "" ? c.originName : undefined,
-        // tableName: c.tableName !== "" ? c.tableName : undefined,
       };
     });
   query.finalize();
