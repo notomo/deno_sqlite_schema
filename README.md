@@ -163,14 +163,10 @@ console.log(JSON.stringify(schema, null, 2));
         "name": "describedIssue",
         "columns": [
           {
-            "name": "id",
-            "originalName": "id",
-            "tableName": "issue"
+            "name": "id"
           },
           {
-            "name": "text",
-            "originalName": "description",
-            "tableName": "issue"
+            "name": "text"
           }
         ]
       }
