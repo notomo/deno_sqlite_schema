@@ -3,7 +3,7 @@ import {
   assertEquals,
   assertObjectMatch,
   assertThrows,
-} from "https://deno.land/std@0.185.0/testing/asserts.ts";
+} from "jsr:@std/assert@1.0.3";
 
 Deno.test("extract", async (t) => {
   await t.step("can extract empty schema", () => {

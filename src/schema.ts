@@ -1,5 +1,5 @@
-import { Database } from "jsr:@db/sqlite@0.11";
-import * as types from "./type.ts";
+import { Database } from "jsr:@db/sqlite@0.12";
+import type * as types from "./type.ts";
 
 export function extract(sql: string): types.Schema[] {
   const db = new Database(":memory:");
